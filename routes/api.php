@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BundleController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\WalletController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,3 +64,11 @@ Route::post('transactions/pay/online', [TransactionController::class, 'onlinePay
 
 // customer
 Route::put('/customer/{id}/update', [CustomerController::class, 'updateCustomerInfo'])->name('api.updateCustomerInfo');
+
+// wallet
+Route::get('wallet/all', WalletController::class,'index')->name('api.wallet.all');
+Route::post('wallet/create/', WalletController::class,'create')->name('api.wallet.create');
+Route::get('wallet/debit/{id}', WalletController::class,'debit')->name('api.wallet.debit');
+Route::get('wallet/credit/{id}', WalletController::class,'credit')->name('api.wallet.credit');
+Route::get('wallet/balance/{id}', WalletController::class,'balance')->name('api.wallet.balance');
+
