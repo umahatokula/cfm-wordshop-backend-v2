@@ -6,6 +6,7 @@ use App\Models\Pin;
 use App\Models\User;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
+use Database\Seeders\UsersTableSeeder;
 use Database\Seeders\RolesTableSeeder;
 use Database\Seeders\PreachersTableSeeder;
 use Database\Seeders\CategoriesTableSeeder;
@@ -27,6 +28,7 @@ class DatabaseSeeder extends Seeder
             CategoriesTableSeeder::class,
             PreachersTableSeeder::class,
             RolesTableSeeder::class,
+            UsersTableSeeder::class,
         ]);
     }
 }

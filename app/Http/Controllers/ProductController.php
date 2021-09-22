@@ -256,6 +256,53 @@ class ProductController extends Controller
         $product->s3_key               = $request->s3_key;
         $product->preacher_id          = $request->preacher_id;
         $product->date_preached        = $request->date_preached;
+        
+        if ($request->hasFile('image')) {
+
+            // prepare and upload product image
+            $image = $request->file('image');
+            $img = Image::make($image->getRealPath());
+            $input['imagename'] = time().'.'.$image->getClientOriginalExtension();
+
+            $destinationPath = 'products-images/';
+
+            $originalImageDestinationPath = public_path($destinationPath);
+            $originalImg = $img->save($originalImageDestinationPath.'/'.$input['imagename']);
+
+
+            $thumbnailDestinationPath = public_path($destinationPath.'thumbnail');
+
+            $thumbnail = $img
+                        ->resize(250, null, function ($constraint) {
+                            $constraint->aspectRatio();
+                        })
+                        ->text('WordShop', 20, 0, function($font) {
+                            // $font->file('foo/bar.ttf');
+                            $font->size(24);
+                            $font->color('#fdf6e3');
+                            $font->align('center');
+                            $font->valign('top');
+                            $font->angle(45);
+                        })
+                        ->save($thumbnailDestinationPath.'/'.$input['imagename']);
+
+            // upload downloadable file
+            $download_link = '';
+            if ($request->hasFile('downloadable_file')) {
+                $downloadableFile = $request->file('downloadable_file');
+                $downloadableFileName = time() . '.' . $downloadableFile->getClientOriginalExtension();
+                $s3 = \Storage::disk('s3');
+                $filePath = date('Y') .'/'. date('m') .'/'. $downloadableFileName;
+                $s3->put($filePath, file_get_contents($downloadableFile), 'public');
+                $download_link = env('AWS_URL').$filePath;
+            }
+
+            // update product properties
+            $product->size                 = $image->getSize();
+            $product->format               = $image->getMimeType();
+            $product->large_image_path     = URL::to('/').'/'.$destinationPath.$originalImg->basename;
+            $product->thumbnail_image_path = URL::to('/').'/'.$destinationPath.'thumbnail/'.$thumbnail->basename;
+        }
 
         // $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
         //

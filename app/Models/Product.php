@@ -106,7 +106,7 @@ class Product extends Model implements Searchable
     }
 
     /**
-     * Get the user's first name.
+     * Trim S3 Key.
      *
      * @param  string  $value
      * @return string

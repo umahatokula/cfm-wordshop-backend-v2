@@ -62,5 +62,9 @@ class Bundle extends Model implements Searchable
         //     'preacher' => ['products.id','preachers.product_id'],
         // ],
     ];
+    
+    public function orders() {
+        return $this->belongsToMany(Order::class, 'bundle_order', 'bundle_id', 'order_id')->withPivot('products')->withTimestamps();
+    }
 
 }

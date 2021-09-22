@@ -23,11 +23,11 @@ class BundleController extends Controller
      */
     public function index()
     {
-        $data['bundlesMenu'] = 1;
-    	$data['title'] = 'Manage Bundles';
+        $bundles = Bundle::with('products.preacher')->orderBy('created_at', 'desc')->active()->get();
 
         return  response([
-            Bundle::with('products.preacher')->orderBy('created_at', 'desc')->active()->get()
+            'success' => true,
+            'data' => $bundles
         ], 200);
     }
 

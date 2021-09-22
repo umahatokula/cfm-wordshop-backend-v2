@@ -1,7 +1,8 @@
 <?php
 
-// namespace Database\Seeds;
+namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UsersTableSeeder extends Seeder
@@ -13,6 +14,12 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        //
+        $user = User::create([
+            'name' => 'Umaha Tokula',
+            'email' => 'umahatokula@gmail.com',
+            'password' => \Hash::make('12345678'),
+        ]);
+
+        $user->assignRole('super_admin');
     }
 }

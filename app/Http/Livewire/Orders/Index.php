@@ -2,9 +2,9 @@
 
 namespace App\Http\Livewire\Orders;
 
+use App\Models\Order;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Order;
 
 class Index extends Component
 {

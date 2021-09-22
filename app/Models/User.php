@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Order;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
+use Laravel\Sanctum\HasApiTokens;
+use Laravel\Jetstream\HasProfilePhoto;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -60,4 +63,16 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    public function orders() {
+        return $this->hasMany(Order::class, 'id', 'customer_id');
+    }
+
+    /**
+     * Get all of the posts for the country.
+     */
+    public function walletTransactions()
+    {
+        return $this->hasManyThrough(WalletTransaction::class, Wallet::class, 'customer_id', 'wallet_id');
+    }
 }

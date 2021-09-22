@@ -18,6 +18,9 @@
                     <a href="{{ route('products.index') }}"><i class="ti-palette"></i> <span>Products</span></a>
                 </li>
                 <li>
+                    <a href="{{ route('pre-order-type.index') }}"><i class="ti-palette"></i> <span>Pre-orders</span></a>
+                </li>
+                <li>
                     <a href="#"><i class="ti-palette"></i> <span>Categories</span></a>
                 </li>
                 <li>
@@ -26,12 +29,18 @@
                 <li>
                     <a href="{{ route('bundles.index') }}"><i class="ti-palette"></i> <span>Bundles</span></a>
                 </li>
+
+                @if (auth()->user()->hasAnyRole(['super_admin', 'admin']))
                 <li>
                     <a href="{{ route('pins.listPins') }}"><i class="ti-palette"></i> <span>PIN Mgt</span></a>
                 </li>
+                @endif
+
                 <li>
                     <a href="{{ route('reports.index') }}"><i class="ti-palette"></i> <span>Reports</span></a>
                 </li>
+
+                @if (auth()->user()->hasAnyRole(['super_admin', 'admin']))
                 <li class="has-sub-menu">
                     <a href="#"><i class="ti-package"></i> <span>System Settings</span></a>
                     <ul class="side-header-sub-menu">
@@ -39,6 +48,7 @@
                         <li><a href="{{ route('roles') }}"><span>Roles & Permissions</span></a></li>
                     </ul>
                 </li>
+                @endif
 
             </ul>
         </nav>

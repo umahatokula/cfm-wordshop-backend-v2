@@ -30,23 +30,18 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index($category_slug = null) {
-        $data['productsMenu'] = 1;
-        $data['title'] = 'Manage Products';
 
-        $products = Product::with('categories', 'preacher')->orderBy('date_preached', 'desc')->active()->get();
-
-        foreach ($products as $product) {
+        $products = Product::with('categories', 'preacher')->orderBy('date_preached', 'desc')->active()->get()->map(function($product) {
             if ($product->unit_price == 0) {
-                $product->free_download_link = $product->freeDownloadLink();
+                return $product->free_download_link = $product->freeDownloadLink();
             }
-        }
+
+            return $product;
+        });
 
         $pageSize = 20;
         
         return $paginated = CollectionHelper::paginate($products, $pageSize);
-        return response()->json([
-            CollectionHelper::paginate($products, $pageSize)
-        ], 200);
     }
 
     /**

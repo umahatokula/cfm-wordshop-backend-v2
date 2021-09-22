@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Transaction;
-use App\Pin;
-use App\Customer;
-use App\Product;
-use App\Order;
-use App\OrderDetail;
-use App\TempDownloadLink;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use App\Models\Pin;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Customer;
+use App\Models\OrderDetail;
+use App\Models\Transaction;
 use App\Mail\OrderPaid;
+use App\Models\TempDownloadLink;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class TransactionController extends Controller

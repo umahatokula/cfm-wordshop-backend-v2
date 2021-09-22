@@ -9,9 +9,12 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\PreacherController;
+use App\Http\Controllers\PreOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PreOrderTypesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +79,16 @@ Route::group(['middleware' => 'auth:sanctum', 'verified'], function() {
 
     // reports
     Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
+
+    // preorder type
+    Route::get('pre-order-type', [PreOrderTypesController::class, 'index'])->name('pre-order-type.index');
+    Route::get('pre-order-type/create', [PreOrderTypesController::class, 'create'])->name('pre-order-type.create');
+    Route::post('pre-order-type/store', [PreOrderTypesController::class, 'store'])->name('pre-order-type.store');
+    Route::get('pre-order-type/{preOrderType}/send-links', [PreOrderTypesController::class, 'sendLinks'])->name('pre-order-type.send-links');
+
+    // preorder 
+    Route::get('pre-orders/orders', [PreOrderController::class, 'listOrders'])->name('pre-orders.list-order');
+    Route::get('pre-orders/{preOrderType}/details', [PreOrderController::class, 'details'])->name('pre-orders.details');
 
 });
 

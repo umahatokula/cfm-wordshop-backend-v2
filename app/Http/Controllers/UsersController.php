@@ -28,8 +28,7 @@ class UsersController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
+    public function index() {
         $data['usersMenu'] = 1;
     	$data['title'] = 'Manage Users';
     	$data['roles'] = Role::pluck('name', 'id');
@@ -193,103 +192,103 @@ class UsersController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-        public function delete($id)
-        {
-        	$user = User::destroy($id);
+    public function delete($id)
+    {
+        $user = User::destroy($id);
 
-        	session()->flash('successMessage', 'User was deleted.');
-        	return redirect('users');
-        }
+        session()->flash('successMessage', 'User was deleted.');
+        return redirect('users');
+    }
 
 
-            /**
+    /**
      * Activate Resource
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-            public function activate($id)
-            {
-            	$user = User::find($id);
-            	$user->status_id = 1;
-            	$user->save();
+    public function activate($id)
+    {
+        $user = User::find($id);
+        $user->status_id = 1;
+        $user->save();
 
-            	return redirect('users');
-            }
+        return redirect('users');
+    }
 
 
-            /**
+    /**
      * Deactivate Resource
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-            public function deactivate($id)
-            {
-            	$user = User::find($id);
-            	$user->status_id = 2;
-            	$user->save();
+    public function deactivate($id)
+    {
+        $user = User::find($id);
+        $user->status_id = 2;
+        $user->save();
 
-            	return redirect('users');
-            }
-
-
-        /**
-         * show form to change password
-         * @param  Request $request [description]
-         * @return [type]           [description]
-         */
-        public function changePassword() {
-        	return view('settings.users.changePassword');
-        }
-
-
-        /**
-         * store changed password
-         * @param  Request $request [description]
-         * @return [type]           [description]
-         */
-        public function storeChangedPassword(Request $request) {
-            // dd($request->all());
-            //password update.
-        	$now_password       = $request->now_password;
-        	$password           = $request->password;
-        	$passwordconf       = $request->password_confirmation;
-        	$id                 = $request->id;
-
-        	$rules = array(
-        		'now_password'          => 'required',
-        		'password'              => 'required|min:5|confirmed|different:now_password',
-        		'password_confirmation' => 'required_with:password|min:5'
-        		);
-
-        	$messages = array(
-        		'now_password.required' => 'Your current password is required',
-        		'password.required' => 'Your new password is required',
-        		'password.confirmed' => 'New password and confirmationn must match',
-        		'password.different' => 'You new password must be different from current password',
-        		'password.min' => 'New passwordmust be at least 5 characters' );
-
-
-        	$validator = \Validator::make($request->only('now_password', 'password', 'password_confirmation'), $rules, $messages);
-
-        	if ($validator->fails()) {
-
-        		return redirect()->back()->withErrors($validator);
-
-        	} elseif (\Hash::check($now_password, \Auth::user()->password)) {
-
-        		$user = User::find($id);
-        		$user->password = \Hash::make($password);
-        		$user->save();
-        		return redirect()->back()->with('success', true)->with('successMessage','Password changed successfully.');
-
-        	} else  {
-
-        		return redirect()->back()->with('errorMessage','Old password is incorrect');
-
-        	}
-
-        	return view('settings.users.changePassword');
-        }
+        return redirect('users');
     }
+
+
+    /**
+     * show form to change password
+     * @param  Request $request [description]
+     * @return [type]           [description]
+     */
+    public function changePassword() {
+        return view('settings.users.changePassword');
+    }
+
+
+    /**
+     * store changed password
+     * @param  Request $request [description]
+     * @return [type]           [description]
+     */
+    public function storeChangedPassword(Request $request) {
+        // dd($request->all());
+        //password update.
+        $now_password       = $request->now_password;
+        $password           = $request->password;
+        $passwordconf       = $request->password_confirmation;
+        $id                 = $request->id;
+
+        $rules = array(
+            'now_password'          => 'required',
+            'password'              => 'required|min:5|confirmed|different:now_password',
+            'password_confirmation' => 'required_with:password|min:5'
+            );
+
+        $messages = array(
+            'now_password.required' => 'Your current password is required',
+            'password.required' => 'Your new password is required',
+            'password.confirmed' => 'New password and confirmationn must match',
+            'password.different' => 'You new password must be different from current password',
+            'password.min' => 'New passwordmust be at least 5 characters' );
+
+
+        $validator = \Validator::make($request->only('now_password', 'password', 'password_confirmation'), $rules, $messages);
+
+        if ($validator->fails()) {
+
+            return redirect()->back()->withErrors($validator);
+
+        } elseif (\Hash::check($now_password, \Auth::user()->password)) {
+
+            $user = User::find($id);
+            $user->password = \Hash::make($password);
+            $user->save();
+            return redirect()->back()->with('success', true)->with('successMessage','Password changed successfully.');
+
+        } else  {
+
+            return redirect()->back()->with('errorMessage','Old password is incorrect');
+
+        }
+
+        return view('settings.users.changePassword');
+    }
+}

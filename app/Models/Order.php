@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\BundleOrder;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -17,6 +19,14 @@ class Order extends Model
 
     public function transaction() {
         return $this->hasOne('App\Models\Transaction');
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class, 'customer_id', 'id');
+    }
+    
+    public function bundles() {
+        return $this->belongsToMany(Bundle::class, 'bundle_order', 'order_id', 'bundle_id')->withPivot('products')->withTimestamps();
     }
 
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
 use App\Models\Order;
 use App\Mail\OrderPaid;
 use App\Models\OrderDetail;
@@ -20,22 +21,17 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($customer_id = null)
-    {
-        if($customer_id) {
-            $orders = Order::where('customer_id', $customer_id)->with('order_details')->orderBy('created_at', 'desc')->paginate();
-        } else {
-            $orders = Order::with('order_details')->orderBy('created_at', 'desc')->paginate();
-        }
+    public function myOrders() {
 
+        $user = auth()->user();
 
-        if (request()->ajax()) {
-            return response([
-                'data' => new OrderCollection($orders)
-            ], 200);
-        }
+        $orders = Order::where('customer_id', $user->id)->orWhere('email', $user->email)->with(['order_details.product.preacher', 'user', 'bundles'])->orderBy('created_at', 'desc')->get();
 
-        return view('orders.index')->with('orders', $orders);
+        return response([
+            'success' => true,
+            'data' => $orders
+        ], 200);
+
     }
 
     /**
@@ -54,47 +50,39 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         // dd($request->all());
 
-    	$rules = [
-            'order_details' => 'required',
-            ];
+        $validated = $request->validated();
 
-            $messages = [
-            'order_details.required' => 'Order cannot be empty',
-            ];
-
-            $this->validate($request, $rules, $messages);
-
-            $order                  = new Order;
-            $order->customer_id     = $request->customer_id;
-            $order->order_number    = $order->generateOrderNumber();
-            $order->amount          = $request->amount;
-            $order->payment_id      = $request->payment_id;
-            $order->error_msg       = $request->error_msg;
+        $order                  = new Order;
+        $order->customer_id     = $request->customer_id;
+        $order->order_number    = $order->generateOrderNumber();
+        $order->amount          = $request->amount;
+        $order->payment_id      = $request->payment_id;
+        $order->error_msg       = $request->error_msg;
 
 
-            if($order->save()) {
+        if($order->save()) {
 
-                foreach($request->order_details as $detail) {
-                    $orderDetail                = new OrderDetail;
-                    $orderDetail->order_id      = $order->id;
-                    $orderDetail->product_id    = $detail['product_id'];
-                    $orderDetail->qty           = $detail['qty'];
-                    $orderDetail->total_amount         = $detail['total_amount'];
-                    $orderDetail->save();
-                }
-
-                if (request()->json()) {
-                    return response([
-                        'data' => new OrderCollection(Order::with('order_details.product')->paginate())
-                    ], 200);
-                }
-
-                return redirect('orders');
+            foreach($request->order_details as $detail) {
+                $orderDetail                = new OrderDetail;
+                $orderDetail->order_id      = $order->id;
+                $orderDetail->product_id    = $detail['product_id'];
+                $orderDetail->qty           = $detail['qty'];
+                $orderDetail->total_amount  = $detail['total_amount'];
+                $orderDetail->save();
             }
+
+            return response([
+                'success' => true,
+                'data' => new OrderCollection(Order::with('order_details.product')->paginate(20))
+            ], 200);
+        }
+
+        return response([
+            'success' => false
+        ], 200);
 
     }
 
@@ -108,14 +96,11 @@ class OrderController extends Controller
     {
         $order = Order::where('order_number', $order_number)->with('transaction', 'order_details.product')->first();
 
-        if (request()->expectsJson()) {
-            return $order;
-            return response([
-                'data' => new OrderResource($order)
-            ], 200);
-        }
+        return response([
+            'success' => true,
+            'data' => $order
+        ], 200);
 
-        return view('orders.show')->with('order', $order);
     }
 
     /**
@@ -171,25 +156,5 @@ class OrderController extends Controller
             'products' => $products,
         ]);
 
-    }
-
-    public function resendLinks($orderId) {
-        $order = Order::findOrFail($orderId);
-
-        if (!$order) {
-          return;
-        }
-
-        foreach ($order->temp_download_links as $link) {
-            // create temporary download link for products
-            $link->temp_link = $link->product->getTempDownloadUrl();
-            $link->save();
-        }
-
-        if ($order->email) {
-            Mail::to($order->email)->queue(new OrderPaid($order->load('temp_download_links.product')));
-        }
-
-        return redirect()->back()->withSuccess('Links resent successfully');
     }
 }

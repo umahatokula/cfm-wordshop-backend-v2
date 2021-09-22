@@ -3,9 +3,13 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PinController;
+use App\Http\Controllers\Api\PreOrderController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\UsersController;
 use App\Http\Controllers\Api\BundleController;
+use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\TransactionController;
 
@@ -20,14 +24,27 @@ use App\Http\Controllers\Api\TransactionController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware' => 'auth:sanctum'], function () {
+
+    Route::get('/user/{id}', [UsersController::class, 'show']);
+    Route::get('orders', [OrderController::class, 'myOrders']);
+    Route::get('profile', [UsersController::class, 'profile']);
+    Route::post('logout', [UsersController::class, 'logout']);
+
+    // wallet
+    Route::get('wallet/transactions', [WalletController::class, 'walletTransactions'])->name('api.wallet.all');
+    Route::post('wallet/create', [WalletController::class, 'create'])->name('api.wallet.create');
+    Route::get('wallet/debit/{id}', [WalletController::class, 'debit'])->name('api.wallet.debit');
+    Route::get('wallet/credit/{id}', [WalletController::class, 'credit'])->name('api.wallet.credit');
+    Route::get('wallet/balance/{id}', [WalletController::class, 'balance'])->name('api.wallet.balance');
+    Route::post('wallet/fund', [WalletController::class, 'fund']);
+
 });
 
 
 
 // categories
-Route::get('categories', 'CategoryController@index')->name('api.categories.index');
+Route::get('categories', [CategoryController::class, 'index'])->name('api.categories.index');
 
 // bundles
 Route::get('bundles/search/{searchString}', [BundleController::class, 'searchBundles'])->name('api.bundles.search');
@@ -63,3 +80,8 @@ Route::post('transactions/pay/online', [TransactionController::class, 'onlinePay
 
 // customer
 Route::put('/customer/{id}/update', [CustomerController::class, 'updateCustomerInfo'])->name('api.updateCustomerInfo');
+Route::post('/pre-order', [PreOrderController::class, 'postOrder']);
+
+// user
+Route::post('signup', [UsersController::class, 'signup']);
+Route::post('/login',[UsersController::class, 'login']);

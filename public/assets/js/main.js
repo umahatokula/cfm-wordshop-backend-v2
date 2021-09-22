@@ -365,7 +365,7 @@ function customizer() {
     });
     
 }
-customizer();
+// customizer();
 
 /*--
     Custom Scrollbar (Perfect Scrollbar)

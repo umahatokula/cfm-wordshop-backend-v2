@@ -154,8 +154,11 @@
                                   <div class="row mbn-10">
                                       <div class="col-sm-3 col-12 mb-10"><label for="categories"> Categories</label></div>
                                       <div class="col-sm-9 col-12 mb-10">
-                                          {!! Form::select('categories[]', $categories, null, ['class' => 'form-control',
-                                          'id' => 'categories', 'placeholder' => 'Categories', 'multiple']) !!}
+                                          <select wire:model.defer="product.categories[]" class="form-control" id="categories" multiple>
+                                            @foreach ($categories as $category)
+                                                <option value="{{ $category }}">{{ $category }}</option>
+                                            @endforeach
+                                          </select>
                                       </div>
                                   </div>
                               </div>
@@ -166,7 +169,7 @@
                                       <div class="col-sm-9 col-12 mb-10">
                                           <div class="adomx-checkbox-radio-group">
                                               <label class="adomx-checkbox-2">
-                                                  <input name="is_taxable" id="is_taxable" type="checkbox"> <i
+                                                  <input wire:model.defer="product.is_taxable" name="is_taxable" id="is_taxable" type="checkbox"> <i
                                                       class="icon"></i>
                                                   Is taxable</label>
                                           </div>
@@ -181,7 +184,7 @@
                                       <div class="col-sm-9 col-12 mb-10">
                                           <div class="adomx-checkbox-radio-group">
                                               <label class="adomx-checkbox-2">
-                                                  <input name="is_discountable" id="is_discountable" type="checkbox"> <i
+                                                  <input wire:model.defer="product.is_discountable" name="is_discountable" id="is_discountable" type="checkbox"> <i
                                                       class="icon"></i>
                                                   Is Discountable</label>
                                           </div>
