@@ -71,8 +71,14 @@ class User extends Authenticatable
     /**
      * Get all of the posts for the country.
      */
-    public function walletTransactions()
-    {
+    public function wallet() {
+        return $this->hasOne(Wallet::class, 'customer_id', 'id');
+    }
+
+    /**
+     * Get all of the posts for the country.
+     */
+    public function walletTransactions() {
         return $this->hasManyThrough(WalletTransaction::class, Wallet::class, 'customer_id', 'wallet_id');
     }
 }

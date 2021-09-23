@@ -39,6 +39,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('wallet/balance/{id}', [WalletController::class, 'balance'])->name('api.wallet.balance');
     Route::post('wallet/fund', [WalletController::class, 'fund']);
 
+    // wallet pay
+    Route::post('transactions/pay/wallet', [TransactionController::class, 'walletPay']);
+
 });
 
 

@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Pin;
 use App\Models\Order;
+use App\Models\Wallet;
+use App\Mail\OrderPaid;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\OrderDetail;
 use App\Models\Transaction;
-use App\Mail\OrderPaid;
-use App\Models\TempDownloadLink;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\TempDownloadLink;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 
@@ -328,7 +329,8 @@ class TransactionController extends Controller
      * @return void
      */
     public function walletPay(Request $request) {
-        dd($request->all());
+        // dd($request->all());
+
         $user = auth()->user();
 
         // create order
@@ -368,15 +370,27 @@ class TransactionController extends Controller
         }
         
         // check wallet balance
-        $walletBalance = $user->wallet->balance();
+        $walletBalance = $user->wallet ? $user->wallet->balance : 0;
         if($walletBalance < $request->amount) {
             
+            $trx = new Transaction;
+            $trx->trxref          = $request->trxref;
+            $trx->transaction     = $trx->generateTrxNumber();
+            $trx->message         = 'Insufficient funds in wallet';
+            $trx->status          = 'failed';
+            $trx->payment_type_id = 1;
+            $trx->order_id        = $order->id;
+            $trx->amount          = $request->amount;
+            $trx->save();
+
+            $data = ['status' => false, 'message' => 'Insufficient funds in wallet', 'transaction' => $trx->transaction];
+            return response()->json($data, 200);
         }
 
         //record trx
         $trx = new Transaction;
         $trx->trxref          = $request->trxref;
-        $trx->transaction     = $request->transaction;
+        $trx->transaction     = $trx->generateTrxNumber();
         $trx->message         = 'Approved';
         $trx->status          = 'success';
         $trx->payment_type_id = 3;
@@ -426,7 +440,8 @@ class TransactionController extends Controller
             }
         }
 
-        // credit wallet
+        // debit wallet
+        $user->wallet->debit($request->amount);
 
         Mail::to($request->email)->queue(new OrderPaid($order->load('temp_download_links.product')));
 
