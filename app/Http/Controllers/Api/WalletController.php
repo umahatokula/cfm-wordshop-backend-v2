@@ -15,6 +15,8 @@ class WalletController extends Controller
         return response()->json([
             'success' => true,
             'transactions' => auth()->user()->walletTransactions,
+            'balance' => auth()->user()->walletTransactions->sum('amount'),
+            'used' => abs(auth()->user()->walletTransactions->where('type', 'dr')->sum('amount')),
         ]);
         
     }
