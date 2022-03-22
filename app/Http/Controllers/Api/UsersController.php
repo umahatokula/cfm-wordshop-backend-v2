@@ -42,7 +42,7 @@ class UsersController extends Controller
         $authToken = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'user'    => $user,
             'token' => $authToken,
         ], 200);
@@ -70,7 +70,7 @@ class UsersController extends Controller
         $user->assignRole($request->role_ids);
 
     	return response()->json([
-            'success' => true,
+            'status' => true,
             'user'    => $user,
             'token'   => $token
         ]);
@@ -89,7 +89,7 @@ class UsersController extends Controller
         $user = auth()->user();
 
         return response([
-            'success' => true,
+            'status' => true,
             'user'    => new UserResource($user)
         ], 200);
 
@@ -105,7 +105,7 @@ class UsersController extends Controller
     {
         auth()->user()->tokens()->delete();
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'User successfully signed out'
         ]);
     }

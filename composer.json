@@ -6,10 +6,11 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
+        "bumbummen99/shoppingcart": "^4.1",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
-        "intervention/image": "^2.6",
-        "laravel/framework": "^8.54",
+        "intervention/image": "^2.7",
+        "laravel/framework": "^8.79",
         "laravel/jetstream": "^2.3",
         "laravel/sanctum": "^2.6",
         "laravel/tinker": "^2.5",
@@ -18,7 +19,8 @@
         "livewire/livewire": "^2.5",
         "maatwebsite/excel": "^3.1",
         "nicolaslopezj/searchable": "^1.13",
-        "snowfire/beautymail": "^1.1",
+        "protonemedia/laravel-cross-eloquent-search": "3.0.0",
+        "spatie/laravel-medialibrary": "^9.0.0",
         "spatie/laravel-permission": "^4.3",
         "spatie/laravel-searchable": "^1.10",
         "spatie/laravel-sluggable": "^2.6"

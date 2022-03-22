@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PinController;
 use App\Http\Controllers\HomeController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\PreacherController;
 use App\Http\Controllers\PreOrderController;
+use App\Http\Controllers\S3ObjectController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\TransactionController;
@@ -67,6 +69,9 @@ Route::group(['middleware' => 'auth:sanctum', 'verified'], function() {
     // Route::get('products/{id}/temp_url', 'ProductController@tempUrl')->name('products.tempUrl');
     Route::get('products/{id}/download', [ProductController::class, 'download'])->name('products.download');
     Route::resource('products', ProductController::class);
+
+    // s3Objects
+    Route::resource('s3objects', S3ObjectController::class);
 
     // preachers
     Route::resource('preachers', PreacherController::class);

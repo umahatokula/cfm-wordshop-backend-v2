@@ -40,7 +40,8 @@
                         <tr>
                             <th class="text-center">#</th>
                             <th>Bundle</th>
-                            <th>Price</th>
+                            <th>Album art</th>
+                            <th class="text-right">Price</th>
                             <th class="text-center">Number of Items in Bundle</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Actions</th>
@@ -51,7 +52,12 @@
                         <tr>
                             <td class="text-center">{{$loop->iteration}}</td>
                             <td>{{$bundle->name}}</td>
-                            <td>{{$bundle->price}}</td>
+                            <td>
+                                @if ($bundle->getFirstMedia('bundle_album_art'))
+                                    <img src="{{ $bundle->getFirstMediaUrl('bundle_album_art') }}" alt="" style="max-width: 50px">
+                                @endif
+                            </td>
+                            <td class="text-right">{{number_format($bundle->price, 2)}}</td>
                             <td class="text-center">{{$bundle->products->count()}}</td>
                             <td class="text-center">
                                 <span class="badge badge-outline badge-{{$bundle->is_active ? 'primary' : 'danger'}}">{{$bundle->is_active ? 'active' : 'inactive'}}</span>
@@ -63,10 +69,7 @@
                                     data-remote="{{route('bundles.show', $bundle->id)}}"><i
                                         class="text-info zmdi zmdi-eye zmdi-hc-fw"></i></a>
 
-                                <a data-href="#" data-clipboard-text="zmdi zmdi-edit" data-toggle="modal"
-                                    data-target="#modal"
-                                    data-remote="{{route('bundles.edit', $bundle->id)}}"><i
-                                        class="text-primary zmdi zmdi-edit zmdi-hc-fw"></i></a>
+                                <a href="{{route('bundles.edit', $bundle->id)}}"><i class="text-primary zmdi zmdi-edit zmdi-hc-fw"></i></a>
 
                                 <a data-href="{{route('bundles.delete', $bundle->id)}}"
                                     data-clipboard-text="zmdi zmdi-delete" data-toggle="modal"

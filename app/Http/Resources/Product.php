@@ -37,8 +37,8 @@ class Product extends JsonResource
             'is_digital' => $this->is_digital,
             'is_active' => $this->is_active,
             'download_link' => $this->download_link,
-            'large_image_path' => $this->large_image_path,
-            'thumbnail_image_path' => $this->thumbnail_image_path,
+            'large_image_path' => $this->getFirstMedia('album_art')->getUrl('thumb'),
+            'thumbnail_image_path' => $this->getFirstMedia('album_art')->getUrl('thumb'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'links' => [

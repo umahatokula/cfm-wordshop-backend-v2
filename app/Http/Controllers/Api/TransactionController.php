@@ -18,25 +18,6 @@ use Illuminate\Support\Facades\Mail;
 
 class TransactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        return view('transactions.index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a new PINPAY transaction
@@ -46,10 +27,13 @@ class TransactionController extends Controller
      */
     public function pinPay(Request $request) {
         // dd($request->all());
+        // printf( $request->bundles);
+        // print_r($request->products);
 
         $rules = [
-        'pin'   => 'required',
-        'email' => 'required|email',
+            'pin'   => 'required',
+            'amount'   => 'required',
+            'email' => 'required|email',
         ];
 
         $messages = [
@@ -58,7 +42,7 @@ class TransactionController extends Controller
             'email.email' => 'Please enter a valid email address',
         ];
 
-        $this->validate($request, $rules, $messages);
+        // $this->validate($request, $rules, $messages);
 
         $customer = Customer::where('email', $request->email)->first();
         if(!$customer) {
@@ -67,15 +51,17 @@ class TransactionController extends Controller
         $customer->email = $request->email;
         $customer->save();
 
+        $isBundle = isset($request->bundles) ? count($request->bundles) > 1 ? 1 :0 : 0;
+
         // create order
         $order = new Order;
         $order->customer_id  = $request->customer_id;
         $order->email        = $request->email;
         $order->order_number = $order->generateOrderNumber();
         $order->amount       = $request->amount;
-        $order->is_fulfilled = 1;
         $order->discount     = 0.00;
-        $order->is_bundle    = count($request->bundles) > 0 ? 1 : 0;
+        $order->is_bundle    = $isBundle;
+        $order->pin_pay      = 1;
         $order->save();
 
         // order details for bundles
@@ -89,12 +75,10 @@ class TransactionController extends Controller
                     $orderDetail->product_id = $product['id'];
                     $orderDetail->total_amount = $product['unit_price'];
                     $orderDetail->save();
-
                 }
 
-
                 // attach bundle and products to this order. It is important to save the products againts this order because the prices of products may change in the future. We want the price as at when this order was made
-                $order->bundles()->attach($bundle['id'], ['products' => json_encode($bundle['products'])]);
+                $order->bundles()->attach($bundle['bundle_id'], ['products' => json_encode($bundle['products'])]);
             }
 
         } 
@@ -111,13 +95,14 @@ class TransactionController extends Controller
             }
         }  
 
-        $pin = Pin::where('pin', $request->pin)->first();
+        $requestPin = str_pad($request->pin, env('PIN_LENGTH'), '0', STR_PAD_LEFT);
+        $pin = Pin::where('pin', $requestPin)->first();
 
         // pin not found
         if (!$pin) {
             //record trx
             $trx = new Transaction;
-            $trx->trxref          = $request->trxref;
+            $trx->trxref          = time().uniqid(mt_rand(),true);
             $trx->transaction     = $trx->generateTrxNumber();
             $trx->message         = 'PIN not found';
             $trx->status          = 'failed';
@@ -126,7 +111,12 @@ class TransactionController extends Controller
             $trx->amount          = $request->amount;
             $trx->save();
 
-            $data = ['status' => false, 'message' => 'Invalid PIN', 'transaction' => $trx->transaction];
+            $data = [
+                'success' => false, 
+                'message' => 'Invalid PIN', 
+                'transaction' => $trx->transaction
+            ];
+            
             return response()->json($data, 200);
         }
 
@@ -136,7 +126,7 @@ class TransactionController extends Controller
         if ($remainingValue < $request->amount) {
             //record trx
             $trx = new Transaction;
-            $trx->trxref          = $request->trxref;
+            $trx->trxref          = time().uniqid(mt_rand(),true);
             $trx->transaction     = $trx->generateTrxNumber();
             $trx->message         = 'Insufficient fund. Ticket has '.$remainingValue.' units left';
             $trx->status          = 'failed';
@@ -146,7 +136,11 @@ class TransactionController extends Controller
             $trx->amount          = $request->amount;
             $trx->save();
 
-            $data = ['status' => false, 'message' => 'Insufficient fund. Ticket has '.$remainingValue.' units left', 'transaction' => $trx->transaction];
+            $data = [
+                'success' => false, 
+                'message' => 'Insufficient fund. Ticket has '.$remainingValue.' units left', 
+                'transaction' => $trx->transaction
+            ];
             return response()->json($data, 200);
         }
 
@@ -157,7 +151,7 @@ class TransactionController extends Controller
 
         //record trx
         $trx = new Transaction;
-        $trx->trxref          = $request->trxref;
+        $trx->trxref          = time().uniqid(mt_rand(),true);
         $trx->transaction     = $trx->generateTrxNumber();
         $trx->message         = 'Approved';
         $trx->status          = 'success';
@@ -166,6 +160,10 @@ class TransactionController extends Controller
         $trx->order_id        = $order->id;
         $trx->amount          = $request->amount;
         $trx->save();
+
+        // indicate that order was fulfilled
+        $order->is_fulfilled = 1;
+        $order->save();
 
         // update product
         if(count($request->bundles) > 0) {
@@ -212,7 +210,12 @@ class TransactionController extends Controller
 
         Mail::to($request->email)->queue(new OrderPaid($order->load('temp_download_links.product')));
 
-        $data = ['status' => true, 'message' => 'Transaction Successful', 'transaction' => $trx->transaction];
+        $data = [
+            'status' => true, 
+            'message' => 'Transaction Successful', 
+            'transaction' => $trx->transaction,
+            'order' => $trx->load('order'),
+        ];
         return response()->json($data, 200);
     }
     
@@ -231,9 +234,9 @@ class TransactionController extends Controller
         $order->customer_id  = $request->customer_id;
         $order->order_number = $order->generateOrderNumber();
         $order->amount       = $request->amount;
-        $order->is_fulfilled = 1;
         $order->discount     = 0.00;
         $order->is_bundle    = count($request->bundles) > 0 ? 1 : 0;
+        $order->online_pay   = 1;
         $order->save();
 
         // order details for bundles
@@ -272,6 +275,10 @@ class TransactionController extends Controller
         $trx->amount = $request->amount;
         $trx->save();
 
+        // indicate that order was fulfilled
+        $order->is_fulfilled = 1;
+        $order->save();
+
         // update product if bundle
         
         if(count($request->bundles) > 0) {
@@ -295,6 +302,7 @@ class TransactionController extends Controller
                 }
             }
         }
+
         if(count($request->products) > 0) {
             foreach ($request->products as $product) {
                 $p = Product::find($product['id']);
@@ -318,6 +326,7 @@ class TransactionController extends Controller
         Mail::to($request->email)->queue(new OrderPaid($order->load('temp_download_links.product')));
 
         $data = ['status' => true, 'message' => 'Transaction Successful', 'transaction' => $trx->transaction];
+        
         return response()->json($data, 200);
 
     }
@@ -339,9 +348,9 @@ class TransactionController extends Controller
         $order->customer_id  = $request->customer_id;
         $order->order_number = $order->generateOrderNumber();
         $order->amount       = $request->amount;
-        $order->is_fulfilled = 1;
         $order->discount     = 0.00;
         $order->is_bundle    = count($request->bundles) > 0 ? 1 : 0;
+        $order->wallet_pay   = 1;
         $order->save();
 
         // order details for bundles
@@ -397,6 +406,10 @@ class TransactionController extends Controller
         $trx->order_id        = $order->id;
         $trx->amount          = $request->amount;
         $trx->save();
+
+        // indicate that order was fulfilled
+        $order->is_fulfilled = 1;
+        $order->save();
         
         if(count($request->bundles) > 0) {
             foreach ($request->bundles as $bundle) {

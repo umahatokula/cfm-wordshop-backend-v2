@@ -12,6 +12,7 @@ use App\Models\TempDownloadLink;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\OrderCollection;
+use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\Order as OrderResource;
 
 class OrderController extends Controller
@@ -21,70 +22,39 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function myOrders() {
+    public function index() {
 
-        $user = auth()->user();
-
-        $orders = Order::where('customer_id', $user->id)->orWhere('email', $user->email)->with(['order_details.product.preacher', 'user', 'bundles'])->orderBy('created_at', 'desc')->get();
+        $orders = Order::with(['order_details.product.preacher', 'user', 'bundles', 'customer'])->orderBy('created_at', 'desc')->get();
 
         return response([
-            'success' => true,
+            'status' => true,
             'data' => $orders
         ], 200);
 
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
-    }
+    public function myOrders() {
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request) {
-        // dd($request->all());
+        $user = auth()->user();
 
-        $validated = $request->validated();
-
-        $order                  = new Order;
-        $order->customer_id     = $request->customer_id;
-        $order->order_number    = $order->generateOrderNumber();
-        $order->amount          = $request->amount;
-        $order->payment_id      = $request->payment_id;
-        $order->error_msg       = $request->error_msg;
-
-
-        if($order->save()) {
-
-            foreach($request->order_details as $detail) {
-                $orderDetail                = new OrderDetail;
-                $orderDetail->order_id      = $order->id;
-                $orderDetail->product_id    = $detail['product_id'];
-                $orderDetail->qty           = $detail['qty'];
-                $orderDetail->total_amount  = $detail['total_amount'];
-                $orderDetail->save();
-            }
-
-            return response([
-                'success' => true,
-                'data' => new OrderCollection(Order::with('order_details.product')->paginate(20))
-            ], 200);
+        if (!$user ) {
+            abort();
         }
 
+        $orders = Order::where('customer_id', $user->id)->orWhere('email', $user->email)->with(['order_details.product.preacher', 'user', 'bundles', 'customer'])->orderBy('created_at', 'desc')->get();
+
         return response([
-            'success' => false
+            'status' => true,
+            'data' => $orders
         ], 200);
 
     }
+
 
     /**
      * Display the specified resource.
@@ -94,12 +64,20 @@ class OrderController extends Controller
      */
     public function show($order_number)
     {
-        $order = Order::where('order_number', $order_number)->with('transaction', 'order_details.product')->first();
+        $order = Order::where('order_number', $order_number)->with('customer', 'transaction', 'order_details.product')->first();
 
-        return response([
-            'success' => true,
-            'data' => $order
-        ], 200);
+        if($order) {
+            return response([
+                'status' => true,
+                'data' => $order
+            ], 200);
+        } else {
+            return response([
+                'success' => false,
+                'data' => $order
+            ], 200);
+        }
+
 
     }
 

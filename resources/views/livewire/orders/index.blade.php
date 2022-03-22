@@ -36,7 +36,7 @@
                             @endif
                         </td></td>
                         <td>{{$order->created_at}}</td>
-                        <td><span class="badge badge-{{$order->is_fulfilled?'success':'danger'}}">{{$order->is_fulfilled?'fulfilled':'pending'}}</span></td>
+                        <td>{{ $order->transaction->message }}</td>
                         <td>
                             <a class="" href="{{route('orders.resendLinks', $order->id)}}">Resend Link</a>
                         </td>

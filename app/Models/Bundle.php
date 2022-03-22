@@ -9,11 +9,17 @@ use Spatie\Searchable\SearchResult;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Bundle extends Model implements Searchable
+class Bundle extends Model implements Searchable, HasMedia
 {
     use SearchableTrait;
     use HasSlug;
+    use InteractsWithMedia;
+
+    protected $appends = ['album_art'];
 
     /**
      * Get the options for generating the slug.
@@ -30,6 +36,22 @@ class Bundle extends Model implements Searchable
        $url = route('bundles.show', $this->id);
 
        return new SearchResult($this, $this->name, $url);
+    }
+
+    public function registerMediaConversions(Media $media = null): void {
+        $this->addMediaConversion('thumb')
+              ->width(150)
+              ->height(150)
+              ->sharpen(10);
+    }
+    
+    /**
+     * getLargeImagePathAttribute
+     *
+     * @return void
+     */
+    public function getAlbumArtAttribute() {
+        return $this->getFirstMedia('bundle_album_art') ? $this->getFirstMedia('bundle_album_art')->getUrl() : $this->large_image_path;
     }
 
     public function products() {

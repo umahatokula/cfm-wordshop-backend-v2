@@ -42,8 +42,14 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <p>Thank you for making a purchase from our online store.</p>
-                <p>We assure you that if you spend time listening and meditating on these words, it will help you grow into who God wants you to be.</p>
+                <p>Hello Beloved,</p>
+
+                <p>Thank you for your patience in waiting for FA'21 messages.</p>
+
+                <p>The messages are divided into two batches; the first batch is here and the second batch will be sent later.</p>
+
+
+                <p>Download sermons individually using the links below</p>
 
                 <table class="customTable">
                     <thead>
@@ -51,6 +57,7 @@
                             <th>S/N</th>
                             <th>Item</th>
                             <th>Preacher</th>
+                            <th>Sermon Date</th>
                             <th class="text-center">Download Link</th>
                         </tr>
                     </thead>
@@ -60,6 +67,7 @@
                             <td scope="row">{{ $loop->iteration }}</td>
                             <td>{{ $sermon->name }}</td>
                             <td>{{ $sermon->preacher ? $sermon->preacher->name : '' }}</td>
+                            <td>{{ $sermon->date_preached ? $sermon->date_preached->toFormattedDateString() : '' }}</td>
                             <td class="text-center">
                                 <a href="{{ $sermon->temp_link }}" class="btn btn-warning">Download</a>
                             </td>
@@ -67,6 +75,13 @@
                         @endforeach
                     </tbody>
                 </table>
+
+                <p>Please note that the files will expire in 48 hours. </p>
+
+                <p>Stay full of faith by listening to God's Word daily.</p>
+
+                <p>Love is king!</p>
+
             </div>
         </div>
     </div>

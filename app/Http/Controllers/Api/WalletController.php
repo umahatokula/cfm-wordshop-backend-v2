@@ -13,7 +13,7 @@ class WalletController extends Controller
     public function walletTransactions() {
 
         return response()->json([
-            'success' => true,
+            'status' => true,
             'transactions' => auth()->user()->walletTransactions,
             'balance' => auth()->user()->walletTransactions->sum('amount'),
             'used' => abs(auth()->user()->walletTransactions->where('type', 'dr')->sum('amount')),
@@ -42,7 +42,7 @@ class WalletController extends Controller
         $wallet->credit($amount, request('transaction')['reference']);
 
         return response([
-            'success' => true,
+            'status' => true,
             'message' => 'Successfully debited your account'
         ], 200);
     }
@@ -59,7 +59,7 @@ class WalletController extends Controller
         $wallets = Wallet::all();
 
         return response([
-            'success' => true,
+            'status' => true,
             'wallets' => $wallets
          ], 200);
     }
@@ -77,7 +77,7 @@ class WalletController extends Controller
         ]);
 
         return response([
-            'success' => true,
+            'status' => true,
             'message' => 'Wallet created successfully'
          ], 200);
     }
@@ -104,7 +104,7 @@ class WalletController extends Controller
         );
 
         return response([
-            'success' => true,
+            'status' => true,
             'message' => 'Successfully debited your account'
          ], 200);
     }
@@ -119,7 +119,7 @@ class WalletController extends Controller
         $wallet->save();
 
         return response([
-            'success' => true,
+            'status' => true,
             'message' => 'Successfully credited your account'
          ], 200);
     }
@@ -136,7 +136,7 @@ class WalletController extends Controller
         $wallet = Wallet::findOrFail($request->user_id);
         $balance = $wallet->units;
         return response([
-           'success' => true,
+           'status' => true,
            'balance' => $balance
         ], 200);
     }

@@ -29,9 +29,9 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($category_slug = null) {
+    public function index() {
 
-        $products = Product::with('categories', 'preacher')->orderBy('date_preached', 'desc')->active()->get()->map(function($product) {
+        $products = Product::with('categories', 'preacher', 'media')->orderBy('date_preached', 'desc')->active()->get()->map(function($product) {
             if ($product->unit_price == 0) {
                 return $product->free_download_link = $product->freeDownloadLink();
             }
@@ -41,7 +41,10 @@ class ProductController extends Controller
 
         $pageSize = 20;
         
-        return $paginated = CollectionHelper::paginate($products, $pageSize);
+        return response()->json([
+            'status' => true,
+            'data' => CollectionHelper::paginate($products, $pageSize)
+        ]);
     }
 
     /**
@@ -52,50 +55,41 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        $product = Product::where('id', $id)->with('categories')->first();
+        $product = Product::where('id', $id)->orWhere('slug', $id)->with('categories', 'preacher')->first();
 
-        return response([
-            'data' => new ProductResource($product)
-        ], 200);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function details($slug)
-    {
-        $product = Product::where('slug', $slug)->with('categories')->with('preacher')->first();
-        if ($product->unit_price == 0) {
-            $product->free_download_link = $product->freeDownloadLink();
-        }
-
-        return response([
+        return response()->json([
+            'status' => true,
             'data' => $product
         ], 200);
     }
+    
+    /**
+     * download
+     *
+     * @param  mixed $product_id
+     * @return void
+     */
+    public function download($id_orSlug) {
 
-    public function download($product_id) {
+        $product = Product::where('id', $id_orSlug)->orWhere('slug', $id_orSlug)->first();
 
-        $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-
-        //Creating a presigned URL
-        $cmd = $s3Client->getCommand('GetObject', [
-            'Bucket' => env('AWS_BUCKET'),
-            'Key' => 'audio/2020/JULY/200726-New Beginnings.mp3'
-        ]);
-
-        $request = $s3Client->createPresignedRequest($cmd, '+2 days');
-
-        // Get the actual presigned-url
-        return (string)$request->getUri();
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'download_url' => $product ? (string) $product->getTempDownloadUrl() : null,
+            ]
+        ], 200);
 
     }
-
+    
+    /**
+     * searchProducts
+     *
+     * @param  mixed $searchString
+     * @return void
+     */
     public function searchProducts($searchString) {
-        // dd($searchString);
+
         $products = Product::search($searchString)
                     ->with('preacher')
                     ->orderBy('date_preached', 'desc')
@@ -107,9 +101,18 @@ class ProductController extends Controller
             }
         }
 
-        return $products;
+        return response()->json([
+            'status' => true,
+            'data' => $products
+        ], 200);
     }
-
+    
+    /**
+     * increment product count
+     *
+     * @param  mixed $product_id
+     * @return void
+     */
     public function increment($product_id) {
         $product = Product::find($product_id);
 
@@ -122,10 +125,19 @@ class ProductController extends Controller
                 $product->save();
             }
 
-            return $product;
+            return response()->json([
+                'status' => true,
+                'data' => $product
+            ], 200);
         }
     }
-
+    
+    /**
+     * decrement product count
+     *
+     * @param  mixed $product_id
+     * @return void
+     */
     public function decrement($product_id) {
         $product = Product::find($product_id);
 
@@ -138,9 +150,11 @@ class ProductController extends Controller
                 $product->save();
             }
 
-            return $product;
+            return response()->json([
+                'status' => true,
+                'data' => $product
+            ], 200);
         }
     }
-
 
 }

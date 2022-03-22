@@ -13,6 +13,7 @@
                     <thead>
                         <tr>
                             <th>Product Name</th>
+                            <th>Image</th>
                             <th>Preacher</th>
                             <th>Price</th>
                             <th>Date Preached</th>
@@ -24,7 +25,16 @@
                     <tbody>
                         @foreach($products as $product)
                         <tr>
-                            <td><a href="#">{{$product->name}}</a></td>
+                            <td><a href="#">{{$product->name}} - ({{$product->no_of_downloads}})</a></td>
+                            <td>
+                                @if ($product->getFirstMedia('album_art'))
+                                    <img src="{{ $product->getFirstMediaUrl('album_art') }}" alt="" style="max-width: 50px">
+                                @endif
+                                
+                                        @if ($product->getFirstMedia('album_art'))
+                                            <img src="{{ $product->getFirstMediaUrl('album_art') }}" alt="" style="max-width: 80px">
+                                        @endif
+                            </td>
                             <td><a href="#">{{$product->preacher ? $product->preacher->name : null}}</a></td>
                             <td>{{$product->unit_price}}</td>
                             <td>{{ $product->date_preached ?$product->date_preached->toFormattedDateString() : null }}</td>

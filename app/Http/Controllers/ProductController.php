@@ -204,8 +204,6 @@ class ProductController extends Controller
      */
     public function edit($id) {
         $data['product']    = Product::where('id', $id)->with('categories')->first();
-        $data['categories'] = Category::pluck('name', 'id');
-        $data['preachers']  = Preacher::pluck('name', 'id');
 
         return view('products.edit', $data);
     }

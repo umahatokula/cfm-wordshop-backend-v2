@@ -15,35 +15,48 @@ class Pin extends Model
     }
 
 
+    // /**
+    //  * Get the user's full name.
+    //  *
+    //  * @return string
+    //  */
+    // public function getPinAttribute($value)
+    // {
+    //     return ltrim($value, '0');
+    // }
+
+
     /**
      * [generate description]
      * @return [type] [description]
     */
     public function generatePIN($PIN_length = 8) {
 
+        $PIN_length = env('PIN_LENGTH');
+
         $PIN_found = false;
 
         while (!$PIN_found) {
 
-        $PIN = "";
+            $PIN = "";
 
-        $i = 0;
+            $i = 0;
 
-        while ($i < $PIN_length) {
+            while ($i < $PIN_length) {
 
-            //generate a random number between 0 and 9.
-            $PIN .= mt_rand(0, 9);
-            $i++;
+                //generate a random number between 0 and 9.
+                $PIN .= mt_rand(0, 9);
+                $i++;
 
-        }
+            }
 
-        $result = Pin::where('pin', $PIN)->first();
+            $result = Pin::where('pin', $PIN)->first();
 
-        if (is_null($result)) {
-            $PIN_found = true;
-        }
+            if (is_null($result)) {
+                $PIN_found = true;
+            }
 
-        return $PIN;
+            return $PIN;
 
         }
     }

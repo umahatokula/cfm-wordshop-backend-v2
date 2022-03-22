@@ -46,8 +46,8 @@ class TransactionController extends Controller
         // dd($request->all());
 
         $rules = [
-        'pin'   => 'required',
-        'email' => 'required|email',
+            'pin'   => 'required',
+            'email' => 'required|email',
         ];
 
         $messages = [
@@ -101,7 +101,9 @@ class TransactionController extends Controller
             }
         }  
 
-        $pin = Pin::where('pin', $request->pin)->first();
+        
+        $requestPin = str_pad($request->pin, env('PIN_LENGTH'), '0', STR_PAD_LEFT);
+        $pin = Pin::where('pin', $requestPin)->first();
 
         // pin not found
         if (!$pin) {

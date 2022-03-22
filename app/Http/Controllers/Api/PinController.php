@@ -5,62 +5,39 @@ namespace App\Http\Controllers\Api;
 use App\Models\Pin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Pin as PinResource;
 
 class PinController extends Controller
-{
-    public function listPins() {
-
-        $data['pins'] = Pin::with('transactions')->get();
-
-        return view('pins.listPins', $data);
-    }
-
+{    
     /**
-     * Create PINs Form
+     * Get pin balance
+     *
+     * @param  mixed $pin
+     * @return void
      */
-    public function create() {
+    public function balance($pin = null) {
 
-        return view('pins.create');
-    }
-
-    /**
-     * Generate PINs
-     */
-    public function generatePINs(Request $request) {
-        // dd($request->all());
-    	$rules = [
-            'number_to_generate' => 'required',
-            'value' => 'required',
-        ];
-    
-        $messages = [
-            'number_to_generate.required' => 'Number to generate is required',
-            'value.required' => 'Value of each PIN is required',
-        ];
-    
-        $this->validate($request, $rules, $messages);
-
-        for ($i=0 ; $i < $request->number_to_generate ; $i++) {
-            $pin = new Pin;
-            $pin->pin = $pin->generatePIN();
-            $pin->value = $request->value;
-            $pin->value_used = 0.00;
-            $pin->is_printed = 0;
-            $pin->is_exhausted = 0;
-            $pin->save();
+        if ($pin) {
+            $pin= Pin::where('pin', $pin)->first();
         }
-
-        return redirect()->route('pins.listPins');
+        
+        return response()->json([
+            'status' => true,
+            'data' => (!$pin ? 'Please enter a PIN' : ($pin ? new PinResource($pin) : 'PIN not found')),
+        ]);
     }
-
+        
     /**
-     * Generate PINs
+     * Check if pin is valid
+     *
+     * @param  mixed $pin
+     * @return void
      */
-    public function transactions($pin_id) {
-        // dd($request->all());
-
-        $data['pin'] = Pin::find($pin_id);
-
-        return view('pins.transactions', $data);
+    public function isValid($pin = null) {
+        
+        return response()->json([
+            'status' => true,
+            'data' => Pin::where('pin', $pin)->first() ? true : false,
+        ]);
     }
 }

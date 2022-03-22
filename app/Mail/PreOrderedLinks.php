@@ -31,6 +31,6 @@ class PreOrderedLinks extends Mailable
      */
     public function build()
     {
-        return $this->view('mails.orders.preOrderLinks');
+        return $this->subject('Faith Adventure 2021 Sermons [CORRECTED]')->view('mails.orders.preOrderLinks');
     }
 }

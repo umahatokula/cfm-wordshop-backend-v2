@@ -24,6 +24,9 @@ class CreateOrdersTable extends Migration
             $table->boolean('is_fulfilled')->default(0);
             $table->boolean('is_paid')->default(0);
             $table->boolean('is_bundle')->default(0);
+            $table->boolean('pin_pay')->default(0);
+            $table->boolean('online_pay')->default(0);
+            $table->boolean('wallet_pay')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

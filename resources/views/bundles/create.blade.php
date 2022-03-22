@@ -15,7 +15,7 @@
 
 <div class="row">
     <div class="col-xlg-12 col-md-12 col-12 mb-30">
-        <create-bundle></create-bundle>
+        <livewire:bundles.create-bundle />
     </div>
 </div>
 @endsection

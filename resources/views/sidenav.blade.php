@@ -18,6 +18,9 @@
                     <a href="{{ route('products.index') }}"><i class="ti-palette"></i> <span>Products</span></a>
                 </li>
                 <li>
+                    <a href="{{ route('s3objects.index') }}"><i class="ti-palette"></i> <span>S3 Objects</span></a>
+                </li>
+                <li>
                     <a href="{{ route('pre-order-type.index') }}"><i class="ti-palette"></i> <span>Pre-orders</span></a>
                 </li>
                 <li>

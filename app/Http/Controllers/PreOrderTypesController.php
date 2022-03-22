@@ -54,11 +54,15 @@ class PreOrderTypesController extends Controller
         $sermons = Product::whereIn('id', $preorderedSermons)->get();
 
         $modified = collect($sermons)->map(function ($sermon, $key) {
-            $sermon->temp_link = $sermon->getTempDownloadUrl();
+            $sermon->temp_link = $sermon->getTempDownloadUrl(7);
             return $sermon;
         });
         
-        Mail::to($preOrderType->preorders)->send(new PreOrderedLinks($sermons->load('preacher')));
+        // Mail::to($preOrderType->preorders)->send(new PreOrderedLinks($sermons->load('preacher')));
+
+        Mail::to('media@christfamilyministries.org')
+            ->bcc($preOrderType->preorders)
+            ->send(new PreOrderedLinks($sermons->load('preacher')));
 
         return redirect()->route('pre-order-type.index');
     }

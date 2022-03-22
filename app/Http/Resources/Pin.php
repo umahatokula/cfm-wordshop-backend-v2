@@ -14,6 +14,10 @@ class Pin extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        // return parent::toArray($request);
+        return [
+            'pin'     => $this->pin,
+            'balance' => $this->value - $this->value_used,
+        ];
     }
 }

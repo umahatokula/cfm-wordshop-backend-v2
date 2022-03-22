@@ -4,8 +4,11 @@ namespace App\Http\Livewire\Products;
 
 use App\Models\Product;
 use Livewire\Component;
+use App\Models\Category;
+use App\Models\Preacher;
 use Illuminate\Http\Request;
 use Livewire\WithFileUploads;
+use App\Models\CategoryProduct;
 
 class Edit extends Component
 {
@@ -13,123 +16,135 @@ class Edit extends Component
     use WithFileUploads;
 
     public Product $product;
+    public $name,
+        $sku,
+        $unit_price,
+        $description,
+        $discount_price,
+        $quantity_per_unit,
+        $units_in_stock,
+        $is_digital,
+        $is_active,
+        $is_audio,
+        $is_taxable,
+        $is_available,
+        $is_discountable,
+        $reorder_level,
+        $download_link,
+        $s3_key,
+        $preacher_id,
+        $date_preached,
+        $image;
 
-    public $preachers;
-
-    public $categories;
+    public $preachers, $categories, $productCategories;
  
     protected $rules = [
-        'product.name'       => 'required|string|min:6',
-        'product.sku'                => 'required',
-        'product.unit_price' => 'required',
-        'product.description'        => 'required',
-        'product.discount_price'     => 'required',
-        'product.quantity_per_unit'  => 'required',
-        'product.units_in_stock'     => 'required',
-        'product.is_digital'         => 'required',
-        'product.is_active'          => 'required',
-        'product.is_audio'           => 'required',
-        'product.is_taxable'         => 'required',
-        'product.is_available'       => 'required',
-        'product.is_discountable'    => 'required',
-        'product.reorder_level'      => 'required',
-        'product.download_link'      => 'required',
-        'product.s3_key'             => 'required',
-        'product.preacher_id'        => 'required',
-        'product.date_preached'      => 'required',
-        'product.image'              => 'image|max:1024',
+        'name'              => 'required|string|min:6',
+        'sku'               => 'required',
+        'unit_price'        => 'required',
+        'download_link'     => 'required',
+        's3_key'            => 'required',
+        'preacher_id'       => 'required',
+        'date_preached'     => 'required',
+        // 'image'             => 'image|max:1024',
     ];
     
+    /**
+     * mount
+     *
+     * @param  mixed $product
+     * @return void
+     */
+    public function mount(Product $product) {
+
+        $this->product = $product;
+        $this->productCategories = $product->categories->map(function($category) {
+            return $category->id;
+        })->toArray();
+        $this->categories = Category::all();
+        $this->preachers  = Preacher::all();
+
+        $this->name              = $product->name;
+        $this->sku               = $product->sku;
+        $this->unit_price        = $product->unit_price;
+        $this->description       = $product->description;
+        $this->discount_price    = $product->discount_price;
+        $this->quantity_per_unit = $product->quantity_per_unit;
+        $this->units_in_stock    = $product->units_in_stock;
+        $this->is_digital        = $product->is_digital;
+        $this->is_active         = $product->is_active;
+        $this->is_audio          = $product->is_audio;
+        $this->is_taxable        = $product->is_taxable;
+        $this->is_available      = $product->is_available;
+        $this->is_discountable   = $product->is_discountable;
+        $this->reorder_level     = $product->reorder_level;
+        $this->download_link     = $product->download_link;
+        $this->s3_key            = $product->s3_key;
+        $this->preacher_id       = $product->preacher_id;
+        $this->date_preached     = $product->date_preached;
+        $this->image             = $product->image;
+    }
+    
  
-    public function save(Request $request) {
-        dd($request->unit_price);
+    public function save() {
 
         $this->validate();
 
-        // prepare and upload product image
-        $image = $request->file('image');
-        $img = Image::make($image->getRealPath());
-        $input['imagename'] = time().'.'.$image->getClientOriginalExtension();
+        $this->product->name                 = $this->name;
+        $this->product->sku                  = $this->sku;
+        $this->product->description          = $this->description;
+        $this->product->unit_price           = $this->unit_price;
+        $this->product->discount_price       = isset($this->discount_price) ? 1 : 0;
+        $this->product->quantity_per_unit    = isset($this->quantity_per_unit) ? $this->quantity_per_unit : 0;
+        $this->product->units_in_stock       = isset($this->units_in_stock) ? $this->units_in_stock : 0;
+        $this->product->is_digital           = isset($this->is_digital) ? 1 : 0;
+        $this->product->is_active            = isset($this->is_active) ? 1 : 0;
+        $this->product->is_audio             = isset($this->is_audio) ? 1 : 0;
+        $this->product->is_taxable           = isset($this->is_taxable) ? 1 : 0;
+        $this->product->is_available         = isset($this->is_available) ? 1 : 0;
+        $this->product->is_discountable      = isset($this->is_discountable) ? 1 : 0;
+        $this->product->reorder_level        = $this->reorder_level;
+        $this->product->download_link        = $this->download_link;
+        $this->product->s3_key               = $this->s3_key;
+        $this->product->preacher_id          = $this->preacher_id;
+        $this->product->date_preached        = $this->date_preached;
 
-        $destinationPath = 'products-images/';
+        // $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
 
-        $originalImageDestinationPath = public_path($destinationPath);
-        $originalImg = $img->save($originalImageDestinationPath.'/'.$input['imagename']);
+        // $s3ObjectHeader = $s3Client->headObject([
+        //     'Bucket' => env('AWS_BUCKET', 'cfm-media-audio'),
+        //     'Key' => $this->product->s3_key
+        // ]);
 
+        // $this->product->file_size = round($s3ObjectHeader['ContentLength'] / 1024 / 1024, 2);
+        // $this->product->save();
 
-        $thumbnailDestinationPath = public_path($destinationPath.'thumbnail');
+        CategoryProduct::where('product_id', $this->product->id)->delete();
 
-        // $thumbnail = $img->resize(300, 200, function ($constraint) {
-        //     $constraint->aspectRatio();
-        // })->save($thumbnailDestinationPath.'/'.$input['imagename']);
-
-        $thumbnail = $img
-                    ->resize(250, null, function ($constraint) {
-                        $constraint->aspectRatio();
-                    })
-                    ->text('WordShop', 20, 0, function($font) {
-                        // $font->file('foo/bar.ttf');
-                        $font->size(24);
-                        $font->color('#fdf6e3');
-                        $font->align('center');
-                        $font->valign('top');
-                        $font->angle(45);
-                    })
-                    ->save($thumbnailDestinationPath.'/'.$input['imagename']);
-
-        // upload downloadable file
-        $download_link = '';
-        if ($request->hasFile('downloadable_file')) {
-            $downloadableFile = $request->file('downloadable_file');
-            $downloadableFileName = time() . '.' . $downloadableFile->getClientOriginalExtension();
-            $s3 = \Storage::disk('s3');
-            $filePath = date('Y') .'/'. date('m') .'/'. $downloadableFileName;
-            $s3->put($filePath, file_get_contents($downloadableFile), 'public');
-            $download_link = env('AWS_URL').$filePath;
-        }
-
-        $product                       = new Product;
-        $product->name                 = $request->name;
-        $product->sku                  = $request->sku;
-        $product->description          = $request->description;
-        $product->unit_price           = $request->unit_price;
-        $product->discount_price       = $request->discount_price;
-        $product->quantity_per_unit    = $request->has('quantity_per_unit') ? $request->quantity_per_unit : 0;
-        $product->units_in_stock       = $request->has('units_in_stock') ? $request->units_in_stock : 0;
-        $product->is_digital           = $request->has('is_digital') ? 1 : 0;
-        $product->is_active            = $request->has('is_active') ? 1 : 0;
-        $product->is_audio             = $request->has('is_audio') ? 1 : 0;
-        $product->is_taxable           = $request->has('is_taxable') ? 1 : 0;
-        $product->is_available         = $request->has('is_available') ? 1 : 0;
-        $product->is_discountable      = $request->has('is_discountable') ? 1 : 0;
-        $product->reorder_level        = $request->reorder_level;
-        $product->download_link        = $request->download_link ? $request->download_link : $download_link;
-        $product->s3_key               = $request->s3_key;
-        $product->preacher_id          = $request->preacher_id;
-        $product->date_preached        = $request->date_preached;
-        $product->size                 = $image->getSize();
-        $product->format               = $image->getMimeType();
-        $product->large_image_path     = URL::to('/').'/'.$destinationPath.$originalImg->basename;
-        $product->thumbnail_image_path = URL::to('/').'/'.$destinationPath.'thumbnail/'.$thumbnail->basename;
-
-        $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-
-        $s3ObjectHeader = $s3Client->headObject([
-            'Bucket' => env('AWS_BUCKET', 'cfm-media-audio'),
-            'Key' => $product->s3_key
-        ]);
-
-        $product->file_size = round($s3ObjectHeader['ContentLength'] / 1024 / 1024, 2);
-        $product->save();
-
-        foreach ($request->categories as $category_id) {
+        foreach ($this->productCategories as $category_id) {
             $cp = new CategoryProduct;
-            $cp->product_id = $product->id;
+            $cp->product_id = $this->product->id;
             $cp->category_id = $category_id;
             $cp->save();
         }
  
         $this->product->save();
+
+        // prepare and upload product image
+        if ($this->image) {
+
+            $this->product->getMedia('album_art')->each(function($mediaPhoto) {
+                $mediaPhoto->delete();
+            });
+
+            $this->product
+            ->addMedia($this->image->getRealPath())
+            ->usingName($this->image->getClientOriginalName())
+            ->toMediaCollection('album_art', 'public');
+        }
+        
+
+        redirect()->route('products.index');
     }
 
     public function render()

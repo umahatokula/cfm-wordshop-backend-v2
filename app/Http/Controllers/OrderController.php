@@ -105,16 +105,16 @@ class OrderController extends Controller
      */
     public function show($order_number)
     {
-        $order = Order::where('order_number', $order_number)->with('transaction', 'order_details.product')->first();
+        $data['order'] = Order::where('id', $order_number)->with('transaction', 'order_details.product')->first();
 
-        if (request()->expectsJson()) {
-            return $order;
-            return response([
-                'data' => new OrderResource($order)
-            ], 200);
-        }
+        // if (request()->expectsJson()) {
+        //     return $order;
+        //     return response([
+        //         'data' => new OrderResource($order)
+        //     ], 200);
+        // }
 
-        return view('orders.show')->with('order', $order);
+        return view('orders.show', $data);
     }
 
     /**

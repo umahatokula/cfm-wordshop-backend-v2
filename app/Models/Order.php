@@ -17,12 +17,20 @@ class Order extends Model
         return $this->hasMany('App\Models\TempDownloadLink');
     }
 
+    public function customer() {
+        return $this->belongsTo('App\Models\Customer')->withDefault();
+    }
+
     public function transaction() {
-        return $this->hasOne('App\Models\Transaction');
+        return $this->hasOne('App\Models\Transaction')->withDefault([
+            'message' => 'No txn',
+        ]);
     }
 
     public function user() {
-        return $this->belongsTo(User::class, 'customer_id', 'id');
+        return $this->belongsTo(User::class, 'customer_id', 'id')->withDefault([
+            'name' => 'Guest Author',
+        ]);
     }
     
     public function bundles() {
