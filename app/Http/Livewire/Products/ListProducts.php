@@ -25,4 +25,8 @@ class ListProducts extends Component
             'products' => Product::where('name', 'like', '%'.$this->search.'%')->with('categories', 'preacher')->orderBy('date_preached', 'desc')->paginate(20)
         ]);
     }
+
+    public function delete(Product $product) {
+        $product->delete();
+    }
 }

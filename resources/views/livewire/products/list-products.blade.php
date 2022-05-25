@@ -30,7 +30,7 @@
                                 @if ($product->getFirstMedia('album_art'))
                                     <img src="{{ $product->getFirstMediaUrl('album_art') }}" alt="" style="max-width: 50px">
                                 @endif
-                                
+
                                         @if ($product->getFirstMedia('album_art'))
                                             <img src="{{ $product->getFirstMediaUrl('album_art') }}" alt="" style="max-width: 80px">
                                         @endif
@@ -52,8 +52,8 @@
                                     <a class="edit button button-box button-xs button-info"
                                         href="{{route('products.edit', $product->id)}}" href="#"><i
                                             class="zmdi zmdi-edit"></i></a>
-                                    <!-- <a class="delete button button-box button-xs button-danger" href="#"><i
-                                            class="zmdi zmdi-delete"></i></a> -->
+                                    <a wire:click="delete($product)" class="delete button button-box button-xs button-danger" href="#"><i
+                                            class="zmdi zmdi-delete"></i></a
                                 </div>
                             </td>
                         </tr>
