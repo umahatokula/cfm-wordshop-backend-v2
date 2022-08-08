@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Models\TempDownloadLink;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 
 class TransactionController extends Controller
 {
@@ -102,7 +103,7 @@ class TransactionController extends Controller
         if (!$pin) {
             //record trx
             $trx = new Transaction;
-            $trx->trxref          = time().uniqid(mt_rand(),true);
+            $trx->trxref          = 'time().uniqid(mt_rand(),true)';
             $trx->transaction     = $trx->generateTrxNumber();
             $trx->message         = 'PIN not found';
             $trx->status          = 'failed';
@@ -262,14 +263,16 @@ class TransactionController extends Controller
                 $orderDetail->total_amount = $product['unit_price'] * $product['order_qty'];
                 $orderDetail->save();            
             }
-        }        
+        }
+
+        $verify = $this->verifyPaystackTransaction($request->trxref);
 
         //record trx
         $trx = new Transaction;
         $trx->trxref = $request->trxref;
         $trx->transaction = $request->transaction;
         $trx->message = $request->message;
-        $trx->status = $request->status;
+        $trx->status = $verify['status'];
         $trx->payment_type_id = 2;
         $trx->order_id = $order->id;
         $trx->amount = $request->amount;
@@ -315,11 +318,13 @@ class TransactionController extends Controller
                 $p->save();
                 
                 // create temporary download link for product
-                $link = new TempDownloadLink;
-                $link->product_id = $p->id;
-                $link->order_id = $order->id;
-                $link->temp_link = $p->getTempDownloadUrl();
-                $link->save();
+                if ($verify['status']) {
+                    $link = new TempDownloadLink;
+                    $link->product_id = $p->id;
+                    $link->order_id = $order->id;
+                    $link->temp_link = $p->getTempDownloadUrl();
+                    $link->save();
+                }
             }
         }
 
@@ -461,5 +466,15 @@ class TransactionController extends Controller
         $data = ['status' => true, 'message' => 'Transaction Successful', 'transaction' => $trx->transaction];
         return response()->json($data, 200);
 
+    }
+
+    public function verifyPaystackTransaction($reference) {
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.env('PAYSTACK_SECRET_KEY'),
+            'Cache-Control' => 'no-cache'
+        ])->get('https://api.paystack.co/transaction/verify/'.$reference);
+
+        return $response->collect();
     }
 }

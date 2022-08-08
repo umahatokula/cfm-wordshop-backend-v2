@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\General\CollectionHelper;
+use App\Http\Requests\Products\CreateProduct;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\CategoryProduct;
@@ -31,6 +33,7 @@ class ProductController extends Controller
     public function index($category_slug = null) {
         $data['productsMenu'] = 1;
         $data['title'] = 'Manage Products';
+//        dd(Product::orderBy('created_at', 'desc')->first()->album_art);
 
         $data['products'] = Product::with('categories', 'preacher')->orderBy('date_preached', 'desc')->paginate(20);
 
@@ -40,12 +43,12 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function create()
     {
-        $data['categories'] = Category::pluck('name', 'id');
-        $data['preachers'] = Preacher::pluck('name', 'id');
+        $data['categories'] = Category::all();
+        $data['preachers'] = Preacher::all();
 
         return view('products.create', $data);
     }
@@ -56,68 +59,8 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
-        // dd($request->all());
-
-        $rules = [
-        'name' => 'required',
-        'sku' => 'required',
-        'unit_price' => 'required',
-        'categories' => 'required',
-        'download_link' => 'required_if:is_digital,on',
-        's3_key' => 'required',
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ];
-
-        $messages = [
-        'name.required' => 'Product Name is required',
-        'download_link.required_if' => 'If a product is digital, then a download link is required',
-        'image.required' => 'Please upload an album art',
-        ];
-
-        $this->validate($request, $rules, $messages);
-
-        // prepare and upload product image
-        $image = $request->file('image');
-        $img = Image::make($image->getRealPath());
-        $input['imagename'] = time().'.'.$image->getClientOriginalExtension();
-
-        $destinationPath = 'products-images/';
-
-        $originalImageDestinationPath = public_path($destinationPath);
-        $originalImg = $img->save($originalImageDestinationPath.'/'.$input['imagename']);
-
-
-        $thumbnailDestinationPath = public_path($destinationPath.'thumbnail');
-
-        // $thumbnail = $img->resize(300, 200, function ($constraint) {
-        //     $constraint->aspectRatio();
-        // })->save($thumbnailDestinationPath.'/'.$input['imagename']);
-
-        $thumbnail = $img
-                    ->resize(250, null, function ($constraint) {
-                        $constraint->aspectRatio();
-                    })
-                    ->text('WordShop', 20, 0, function($font) {
-                        // $font->file('foo/bar.ttf');
-                        $font->size(24);
-                        $font->color('#fdf6e3');
-                        $font->align('center');
-                        $font->valign('top');
-                        $font->angle(45);
-                    })
-                    ->save($thumbnailDestinationPath.'/'.$input['imagename']);
-
-        // upload downloadable file
-        $download_link = '';
-        if ($request->hasFile('downloadable_file')) {
-            $downloadableFile = $request->file('downloadable_file');
-            $downloadableFileName = time() . '.' . $downloadableFile->getClientOriginalExtension();
-            $s3 = \Storage::disk('s3');
-            $filePath = date('Y') .'/'. date('m') .'/'. $downloadableFileName;
-            $s3->put($filePath, file_get_contents($downloadableFile), 'public');
-            $download_link = env('AWS_URL').$filePath;
-        }
+    public function store(CreateProduct $request) {
+//        dd($request->all());
 
         $product                       = new Product;
         $product->name                 = $request->name;
@@ -138,19 +81,19 @@ class ProductController extends Controller
         $product->s3_key               = $request->s3_key;
         $product->preacher_id          = $request->preacher_id;
         $product->date_preached        = $request->date_preached;
-        $product->size                 = $image->getSize();
-        $product->format               = $image->getMimeType();
-        $product->large_image_path     = URL::to('/').'/'.$destinationPath.$originalImg->basename;
-        $product->thumbnail_image_path = URL::to('/').'/'.$destinationPath.'thumbnail/'.$thumbnail->basename;
+        $product->size                 = null;
+        $product->format               = null;
+        $product->large_image_path     = '';
+        $product->thumbnail_image_path = '';
+        $product->save();
 
-        $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
+        // store thumbnail
+//        $product->addMediaFromRequest('image')->toMediaCollection('thumbnail');
 
-        $s3ObjectHeader = $s3Client->headObject([
-            'Bucket' => env('AWS_BUCKET', 'cfm-media-audio'),
-            'Key' => $product->s3_key
-        ]);
-
-        $product->file_size = round($s3ObjectHeader['ContentLength'] / 1024 / 1024, 2);
+        $date_preached = Carbon::parse($request->date_preached);
+        $album_art_path = 'albumarts/'.$date_preached->year.'/'.$date_preached->month;
+        $s3_album_art = Storage::disk('s3')->put($album_art_path, $request->image, 'public');
+        $product->s3_album_art     = $s3_album_art;
         $product->save();
 
         foreach ($request->categories as $category_id) {
@@ -254,7 +197,7 @@ class ProductController extends Controller
         $product->s3_key               = $request->s3_key;
         $product->preacher_id          = $request->preacher_id;
         $product->date_preached        = $request->date_preached;
-        
+
         if ($request->hasFile('image')) {
 
             // prepare and upload product image
@@ -333,7 +276,7 @@ class ProductController extends Controller
         //
     }
 
-    
+
     /**
      * Download digital product
      *
@@ -356,7 +299,7 @@ class ProductController extends Controller
         return (string)$request->getUri();
 
     }
-    
+
     /**
      * Search products
      *
@@ -369,7 +312,7 @@ class ProductController extends Controller
             ->with('preacher')
             ->orderBy('date_preached', 'desc')
             ->paginate(20);
-                    
+
         foreach ($products as $product) {
             if ($product->unit_price == 0) {
                 $product->free_download_link = $product->freeDownloadLink();
@@ -378,7 +321,7 @@ class ProductController extends Controller
 
         return $products;
     }
-    
+
     /**
      * Increment units in stock
      *
@@ -400,7 +343,7 @@ class ProductController extends Controller
             return $product;
         }
     }
-    
+
     /**
      * Decrement units in stock
      *

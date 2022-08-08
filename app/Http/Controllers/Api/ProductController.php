@@ -40,7 +40,7 @@ class ProductController extends Controller
         });
 
         $pageSize = 20;
-        
+
         return response()->json([
             'status' => true,
             'data' => CollectionHelper::paginate($products, $pageSize)
@@ -62,12 +62,12 @@ class ProductController extends Controller
             'data' => $product
         ], 200);
     }
-    
+
     /**
      * download
      *
      * @param  mixed $product_id
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
     public function download($id_orSlug) {
 
@@ -81,7 +81,7 @@ class ProductController extends Controller
         ], 200);
 
     }
-    
+
     /**
      * searchProducts
      *
@@ -94,7 +94,7 @@ class ProductController extends Controller
                     ->with('preacher')
                     ->orderBy('date_preached', 'desc')
                     ->paginate(20);
-                    
+
         foreach ($products as $product) {
             if ($product->unit_price == 0) {
                 $product->free_download_link = $product->freeDownloadLink();
@@ -106,7 +106,7 @@ class ProductController extends Controller
             'data' => $products
         ], 200);
     }
-    
+
     /**
      * increment product count
      *
@@ -131,7 +131,7 @@ class ProductController extends Controller
             ], 200);
         }
     }
-    
+
     /**
      * decrement product count
      *

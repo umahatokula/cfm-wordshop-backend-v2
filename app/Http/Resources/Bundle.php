@@ -21,10 +21,6 @@ class Bundle extends JsonResource
             'price'       => $this->price,
             'description' => $this->description,
             'is_active'   => $this->is_active,
-            'meta' => [
-                'no_of_products' => $this->products->count(),
-                'products'       => $this->products,
-            ]
         ];
     }
 }

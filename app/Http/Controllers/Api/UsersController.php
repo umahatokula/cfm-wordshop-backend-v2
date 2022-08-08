@@ -16,8 +16,8 @@ use App\Http\Resources\User as UserResource;
 
 class UsersController extends Controller
 {
-    
-        
+
+
     /**
      * login
      *
@@ -56,7 +56,7 @@ class UsersController extends Controller
      */
     public function signup(StoreUserRequest $request) {
         // dd($request->all());
-        
+
         $validated = $request->validated();
 
         $user               = new User;
@@ -89,12 +89,12 @@ class UsersController extends Controller
         $user = auth()->user();
 
         return response([
-            'status' => true,
-            'user'    => new UserResource($user)
+            'status'    => true,
+            'user'      => new UserResource($user)
         ], 200);
 
     }
-    
+
     /**
      * logout
      *
@@ -109,5 +109,5 @@ class UsersController extends Controller
             'message' => 'User successfully signed out'
         ]);
     }
-    
+
 }

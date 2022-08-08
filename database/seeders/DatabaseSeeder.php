@@ -24,11 +24,12 @@ class DatabaseSeeder extends Seeder
         Pin::factory(100)->create();
         Product::factory(1000)->create();
 
-        $this->call([
-            CategoriesTableSeeder::class,
-            PreachersTableSeeder::class,
-            RolesTableSeeder::class,
-            UsersTableSeeder::class,
-        ]);
+        $this->call(array(
+           CategoriesTableSeeder::class,
+           PreachersTableSeeder::class,
+           RolesTableSeeder::class,
+           UsersTableSeeder::class,
+            Version1DataSeeder::class,
+        ));
     }
 }

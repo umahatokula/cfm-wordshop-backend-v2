@@ -117,6 +117,40 @@
                               </div>
                               <div class="col-12 mb-20">
                                   <div class="row mbn-10">
+                                      <div class="col-sm-3 col-12 mb-10"><label for="product_file"> Product File</label>
+                                      </div>
+                                      <div class="col-sm-9 col-12 mb-10">
+                                        <div
+
+                                            x-data="{ isUploading: false, progress: 0 }"
+
+                                            x-on:livewire-upload-start="isUploading = true"
+
+                                            x-on:livewire-upload-finish="isUploading = false"
+
+                                            x-on:livewire-upload-error="isUploading = false"
+
+                                            x-on:livewire-upload-progress="progress = $event.detail.progress"
+                                        >
+
+                                            <!-- File Input -->
+                                            <input wire:model="product_file" class="" type="file" data-height="220">
+
+
+                                            <!-- Progress Bar -->
+
+                                            <div x-show="isUploading">
+
+                                                <progress max="100" x-bind:value="progress"></progress>
+
+                                            </div>
+
+                                        </div>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="col-12 mb-20">
+                                  <div class="row mbn-10">
                                       <div class="col-sm-3 col-12 mb-10"><label for="image"> Product Image</label>
                                       </div>
                                       <div class="col-sm-9 col-12 mb-10">
@@ -127,11 +161,12 @@
 
                               <div class="col-12 mb-20">
                                   <input type="submit" value="Cancel" class="button button-danger">
-                                  <input type="submit" value="Submit" class="button button-primary">
+                                  <input type="submit" class="button button-primary" value="Save" wire:click.prevent="save" wire:loading.attr="disabled">
+
                               </div>
 
                           </div>
-                      {!! Form::close() !!}
+                      </form>
                   </div>
 
               </div><!-- Add or Edit Product End -->

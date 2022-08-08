@@ -62,22 +62,33 @@ class Product extends Model implements Searchable, HasMedia
     protected $appends = ['no_of_downloads', 'album_art'];
 
     public function registerMediaConversions(Media $media = null): void {
-        $this->addMediaConversion('thumb')
+        $this->addMediaConversion('thumbnail')
               ->width(150)
               ->height(150)
               ->sharpen(10);
     }
-    
+
+
     /**
      * getLargeImagePathAttribute
      *
      * @return void
      */
     public function getAlbumArtAttribute() {
-        return $this->getFirstMedia('album_art') ? $this->getFirstMedia('album_art')->getUrl() : $this->large_image_path;
+        if(str_starts_with($this->large_image_path, 'https://cfm-media-audio.s3.amazonaws.com/')) {
+            $album_art = $this->large_image_path;
+        }
+        elseif (str_starts_with($this->large_image_path, 'https://shop-resource-server.christfamilyministries.org/')) {
+            $album_art = null;
+        }
+        else {
+            $album_art = env('AWS_URL').$this->s3_album_art;
+        }
+
+        return $album_art;
     }
 
-    
+
     /**
      * getSearchResult
      *
@@ -88,7 +99,7 @@ class Product extends Model implements Searchable, HasMedia
 
        return new SearchResult($this, $this->name, $url);
     }
-    
+
     /**
      * scopeActive
      *
@@ -98,7 +109,7 @@ class Product extends Model implements Searchable, HasMedia
     public function scopeActive($query) {
         return $query->where('is_active', 1);
     }
-    
+
     /**
      * Get number of downloads for product
      *
@@ -109,7 +120,21 @@ class Product extends Model implements Searchable, HasMedia
         return OrderDetail::where('product_id', $this->id)->whereHas('order', function($query) {
             return $query->where('is_fulfilled', 1);
         })->get()->count();
-        
+
+    }
+
+    /**
+     * @return bool
+     */
+    public function getLargeImagePathAttribute() {
+        return str_replace('https://shop-resource-server.christfamilyministries.org', env('APP_URL'), $this->attributes['large_image_path']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getThumbnailImagePathAttribute() {
+        return str_replace('https://shop-resource-server.christfamilyministries.org', env('APP_URL'), $this->attributes['thumbnail_image_path']);
     }
 
     /**
@@ -121,7 +146,7 @@ class Product extends Model implements Searchable, HasMedia
     }
 
     /**
-     * 
+     *
      */
     public function order_details()
     {
@@ -154,7 +179,7 @@ class Product extends Model implements Searchable, HasMedia
         return $this->hasOne('App\Models\TempDownloadLink');
     }
 
-        
+
     /**
      * Generate pre-signed amazon s3 download link
      *
@@ -176,8 +201,8 @@ class Product extends Model implements Searchable, HasMedia
         return (string) $response->getUri();
     }
 
-        
-        
+
+
     /**
      * Generate download link for free download
      *

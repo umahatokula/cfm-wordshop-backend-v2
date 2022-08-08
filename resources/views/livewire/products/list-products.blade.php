@@ -27,13 +27,8 @@
                         <tr>
                             <td><a href="#">{{$product->name}} - ({{$product->no_of_downloads}})</a></td>
                             <td>
-                                @if ($product->getFirstMedia('album_art'))
-                                    <img src="{{ $product->getFirstMediaUrl('album_art') }}" alt="" style="max-width: 50px">
-                                @endif
-
-                                        @if ($product->getFirstMedia('album_art'))
-                                            <img src="{{ $product->getFirstMediaUrl('album_art') }}" alt="" style="max-width: 80px">
-                                        @endif
+                                {{$product->album_art}}
+                                <img src="{{ $product->album_art }}" alt="" style="max-width: 50px">
                             </td>
                             <td><a href="#">{{$product->preacher ? $product->preacher->name : null}}</a></td>
                             <td>{{$product->unit_price}}</td>

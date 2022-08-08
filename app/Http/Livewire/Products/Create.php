@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Products;
 
+use Carbon\Carbon;
 use App\Models\Product;
 use Livewire\Component;
 use App\Models\Category;
@@ -12,7 +13,7 @@ use App\Models\CategoryProduct;
 
 class Create extends Component
 {
-    
+
     use WithFileUploads;
 
     public $name,
@@ -35,19 +36,22 @@ class Create extends Component
         $date_preached,
         $image;
 
+    public $product_file;
+
     public $preachers, $categories, $productCategories;
- 
+
     protected $rules = [
         'name'              => 'required|string|min:6',
         'sku'               => 'required',
         'unit_price'        => 'required',
-        'download_link'     => 'required',
-        's3_key'            => 'required',
+        // 'download_link'     => 'required',
+        // 's3_key'            => 'required',
         'preacher_id'       => 'required',
         'date_preached'     => 'required',
+        'product_file'     => 'required',
         'image'             => 'required|image|max:1024',
     ];
-    
+
     /**
      * mount
      *
@@ -59,11 +63,10 @@ class Create extends Component
         $this->categories = Category::all();
         $this->preachers  = Preacher::all();
     }
-    
- 
-    public function save() {
 
-        $this->validate();
+
+    public function save() {
+        // $this->validate();
 
         $product                       = new Product;
         $product->name                 = $this->name;
@@ -83,18 +86,18 @@ class Create extends Component
         $product->download_link        = $this->download_link;
         $product->s3_key               = $this->s3_key;
         $product->preacher_id          = $this->preacher_id;
-        $product->date_preached        = $this->date_preached; 
-        $product->save();
+        $product->date_preached        = $this->date_preached;
+//        $product->save();
+//        dd($product);
+        dd($this->product_file, $this->image);
 
-        $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
+        $datePreached = Carbon::parse($this->date_preached);
+        $messageYear = $datePreached->format('Y');
+        $messageMonth = $datePreached->format('m');
+        $path = 'audio/'.$messageYear.'/'.$messageMonth.'/';
+        dd($this->product_file, $this->image);
 
-        // $s3ObjectHeader = $s3Client->headObject([
-        //     'Bucket' => env('AWS_BUCKET', 'cfm-media-audio'),
-        //     'Key' => $product->s3_key
-        // ]);
-
-        // $product->file_size = round($s3ObjectHeader['ContentLength'] / 1024 / 1024, 2);
-        // $product->save();
+        $this->product_file->storeAs($path, 'avatar', 's3');
 
         foreach ($this->productCategories as $category_id) {
             $cp = new CategoryProduct;
@@ -102,7 +105,7 @@ class Create extends Component
             $cp->category_id = $category_id;
             $cp->save();
         }
- 
+
         $product->save();
 
         // prepare and upload product image
@@ -113,7 +116,7 @@ class Create extends Component
 
         redirect()->route('products.index');
     }
-    
+
     public function render()
     {
         return view('livewire.products.create');
