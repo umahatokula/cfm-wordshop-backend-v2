@@ -83,8 +83,8 @@ class ProductController extends Controller
         $product->date_preached        = $request->date_preached;
         $product->size                 = null;
         $product->format               = null;
-        $product->large_image_path     = '';
-        $product->thumbnail_image_path = '';
+        $product->large_image_path     = null;
+        $product->thumbnail_image_path = null;
         $product->save();
 
         // store thumbnail
@@ -147,6 +147,8 @@ class ProductController extends Controller
      */
     public function edit($id) {
         $data['product']    = Product::where('id', $id)->with('categories')->first();
+        $data['categories'] = Category::all();
+        $data['preachers'] = Preacher::all();
 
         return view('products.edit', $data);
     }
@@ -159,7 +161,7 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id) {
-        // dd($request->all());
+//        dd($request->all());
 
         $rules = [
             'name' => 'required',
@@ -197,63 +199,21 @@ class ProductController extends Controller
         $product->s3_key               = $request->s3_key;
         $product->preacher_id          = $request->preacher_id;
         $product->date_preached        = $request->date_preached;
-
-        if ($request->hasFile('image')) {
-
-            // prepare and upload product image
-            $image = $request->file('image');
-            $img = Image::make($image->getRealPath());
-            $input['imagename'] = time().'.'.$image->getClientOriginalExtension();
-
-            $destinationPath = 'products-images/';
-
-            $originalImageDestinationPath = public_path($destinationPath);
-            $originalImg = $img->save($originalImageDestinationPath.'/'.$input['imagename']);
-
-
-            $thumbnailDestinationPath = public_path($destinationPath.'thumbnail');
-
-            $thumbnail = $img
-                        ->resize(250, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                        })
-                        ->text('WordShop', 20, 0, function($font) {
-                            // $font->file('foo/bar.ttf');
-                            $font->size(24);
-                            $font->color('#fdf6e3');
-                            $font->align('center');
-                            $font->valign('top');
-                            $font->angle(45);
-                        })
-                        ->save($thumbnailDestinationPath.'/'.$input['imagename']);
-
-            // upload downloadable file
-            $download_link = '';
-            if ($request->hasFile('downloadable_file')) {
-                $downloadableFile = $request->file('downloadable_file');
-                $downloadableFileName = time() . '.' . $downloadableFile->getClientOriginalExtension();
-                $s3 = \Storage::disk('s3');
-                $filePath = date('Y') .'/'. date('m') .'/'. $downloadableFileName;
-                $s3->put($filePath, file_get_contents($downloadableFile), 'public');
-                $download_link = env('AWS_URL').$filePath;
-            }
-
-            // update product properties
-            $product->size                 = $image->getSize();
-            $product->format               = $image->getMimeType();
-            $product->large_image_path     = URL::to('/').'/'.$destinationPath.$originalImg->basename;
-            $product->thumbnail_image_path = URL::to('/').'/'.$destinationPath.'thumbnail/'.$thumbnail->basename;
-        }
-
-        // $s3Client = \Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-        //
-        // $s3ObjectHeader = $s3Client->headObject([
-        //     'Bucket' => env('AWS_BUCKET', 'cfm-media-audio'),
-        //     'Key' => $product->s3_key
-        // ]);
-        //
-        // $product->file_size = round($s3ObjectHeader['ContentLength'] / 1024 / 1024, 2);
+        $product->size                 = null;
+        $product->format               = null;
+        $product->large_image_path     = null;
+        $product->thumbnail_image_path = null;
         $product->save();
+
+        if ($request->image) {
+
+            $date_preached = Carbon::parse($request->date_preached);
+            $album_art_path = 'albumarts/'.$date_preached->year.'/'.$date_preached->month;
+            $s3_album_art = Storage::disk('s3')->put($album_art_path, $request->image, 'public');
+            $product->s3_album_art     = $s3_album_art;
+            $product->save();
+
+        }
 
         foreach ($request->categories as $category_id) {
             $cp = new CategoryProduct;

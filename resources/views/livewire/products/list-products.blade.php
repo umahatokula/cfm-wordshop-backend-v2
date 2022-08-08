@@ -27,8 +27,7 @@
                         <tr>
                             <td><a href="#">{{$product->name}} - ({{$product->no_of_downloads}})</a></td>
                             <td>
-                                {{$product->album_art}}
-                                <img src="{{ $product->album_art }}" alt="" style="max-width: 50px">
+                                <img src="{{ $product->album_art }}" alt="" style="max-width: 30px">
                             </td>
                             <td><a href="#">{{$product->preacher ? $product->preacher->name : null}}</a></td>
                             <td>{{$product->unit_price}}</td>
