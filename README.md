@@ -118,10 +118,3 @@ To contribute, follow these steps:
 
 6. Submit a pull request to the `main` branch of the main repository.
 
-## Support
-
-If you encounter any issues or have any questions or suggestions, please [open an issue](https://github.com/your-username/laravel-audio-store/issues) on GitHub.
-
-## Acknowledgments
-
-The Laravel Audio Store was inspired by the need for a platform to sell audio files securely. We would like to acknowledge the Laravel community for their amazing work and the payment gateway provider for their integration support.
