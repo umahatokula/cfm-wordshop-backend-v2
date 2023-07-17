@@ -1,7 +1,7 @@
 
 # Wordshop
 
-The Laravel Audio Store is a web application that allows users to browse and purchase audio files. Users can make payments using either a credit/debit card or a PIN. The application integrates a payment gateway to handle the payment transactions securely.
+The Wordshop is a web application that allows users to browse and purchase audio files. Users can make payments using either a credit/debit card or a PIN. The application integrates a payment gateway to handle the payment transactions securely.
 
 ## Features
 
